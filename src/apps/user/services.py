@@ -1,8 +1,5 @@
 import uuid
 
-from fastapi import HTTPException
-from tortoise.expressions import Q
-
 from . import schemas, models
 from ..auth.security import get_hashed_password
 from ...base.service_base import BaseService
@@ -11,7 +8,6 @@ from ...base.service_base import BaseService
 class UserService(BaseService):
     model = models.User
     create_schema = schemas.UserIn
-    update_schema = schemas.UserUpdate
     get_schema = schemas.UserOut
 
     @classmethod
@@ -44,6 +40,14 @@ class UserService(BaseService):
         if is_updated:
             updated_user = await cls.model.get(id=user.id)
             return updated_user
+
+    @classmethod
+    async def delete_user(cls, user_id: uuid.UUID):
+        obj = await cls.model.get(id=user_id)
+        await obj.delete()
+        if obj:
+            return True
+        return False
 
     @classmethod
     async def create_superuser(cls, new_superuser: create_schema):

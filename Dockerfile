@@ -52,7 +52,6 @@
 ##CMD uvicorn main:app --reload
 #COPY . /app
 
-
 FROM python:3.9.9
 
 WORKDIR /usr/src
@@ -75,3 +74,9 @@ COPY . /usr/src/
 #RUN aerich upgrade
 
 #docker exec -it lxpay_db_service aerich upgrade
+
+#RUN docker-compose.yml up --build
+
+CMD ["docker-compose", "up", "--build"]
+
+CMD ["./start.sh"]

@@ -9,7 +9,7 @@ def send_new_account_email(email_to: str, username: str, token: str):
 
     project_name = settings.PROJECT_NAME
     subject = f"{project_name} - New account for user {username}"
-    link = f"http://{settings.SERVER_HOST}:{settings.SERVER_PORT}/api/auth/confirm-email/?token={token}"
+    link = f"http://{settings.SERVER_HOST}/api/auth/confirm-email/?token={token}"
 
     template = f"""
         <!DOCTYPE html>
