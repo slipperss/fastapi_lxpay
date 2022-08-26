@@ -1,8 +1,11 @@
 import os
 
 from dotenv import dotenv_values
-from fastapi.security import OAuth2PasswordBearer
+
 from passlib.context import CryptContext
+
+from src.apps.auth.security import CustomOAuth2PasswordBearer
+
 
 CONFIG_CREDENTIALS = dict(dotenv_values(".env"))
 
@@ -30,7 +33,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 PWD_CONTEXT = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="/api/auth/login/")
+OAUTH2_SCHEME = CustomOAuth2PasswordBearer(tokenUrl="/api/auth/login/")
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # Token 60 minutes * 24 hours * 7 days = 7 days
 
@@ -91,8 +94,3 @@ TORTOISE_ORM = {  # https://github.com/tortoise/aerich
         }
     },
 }
-
-
-
-
-

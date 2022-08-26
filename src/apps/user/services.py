@@ -35,6 +35,11 @@ class UserService(BaseService):
         return user
 
     @classmethod
+    async def get_user_by_id(cls, id):
+        user = await cls.model.get(id=id)
+        return user
+
+    @classmethod
     async def update_user(cls, update_schema, user):
         is_updated = await cls.model.filter(id=user.id).update(**update_schema.dict())
         if is_updated:
