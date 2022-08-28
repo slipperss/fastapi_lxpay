@@ -81,6 +81,7 @@ EMAILS_ENABLED = SMTP_HOST and SMTP_PORT and EMAILS_FROM_EMAIL
 APPS_MODELS = [
     "src.apps.user.models",
     "src.apps.auth.models",
+    "src.apps.chat.models",
     "aerich.models",
 ]
 

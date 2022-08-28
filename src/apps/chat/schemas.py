@@ -1,25 +1,36 @@
-from datetime import datetime
-from pydantic import BaseModel
 import uuid
 
+from datetime import datetime
 
-class Message(BaseModel):
-    user_id: str
-    msg: str
-    timestamp = str(datetime.now())
+from pydantic import BaseModel, Field
+
+from tortoise.contrib.pydantic import pydantic_model_creator
+
+from src.apps.chat.models import Chat, Message
+from src.apps.user.models import User
+
+ChatOut = pydantic_model_creator(
+    Chat,
+    name="ChatOut",
+)
 
 
 class UserInChat(BaseModel):
     user_id: uuid.UUID
 
 
-class ChatCreate(BaseModel):
-    second_member_id: UserInChat
+class UserInMessage(BaseModel):
+    user_id: uuid.UUID
+    username: str
 
 
-class Chat(BaseModel):
-    id: str
-    messages: list[Message]
-    members: list[str]
-    session_start = str(datetime.now())
+class ChatIn(BaseModel):
+    members: list[UserInChat]
+
+
+class MessageOut(BaseModel):
+    id: uuid.UUID
+    msg: str
+    #user_id: uuid.UUID
+    created_date: datetime
 

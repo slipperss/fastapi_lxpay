@@ -25,9 +25,13 @@ class ConnectionManager:
         for connection in self.active_connections:
             token = connection.headers.get('Authorization').split(' ')[1]
             user = await get_current_user(token)
-            if not str(user.id) == str(message['user_id']):
+            print('---------')
+            print(user.username)
+            print(not str(user.id) == str(message['user']))
+            if not str(user.id) == str(message['user']):
                 print('Enter', user.username)
                 new_message = copy(message)
-                new_message['user_id'] = user.username
+                new_message['username'] = user.username
                 await connection.send_text(str(new_message))
+                print('---------')
                 break

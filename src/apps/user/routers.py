@@ -32,10 +32,10 @@ async def avatar_update_user(
     updated_user = await UserService.update_user(new_avatar, current_user)
     return updated_user
 
-@user_router.post('/superuser/', response_model=UserOut)
-async def create_superuser(new_superuser: UserIn):
-    superuser = await UserService.create_superuser(new_superuser)
-    return superuser
+# @user_router.post('/superuser/', response_model=UserOut)
+# async def create_superuser(new_superuser: UserIn):
+#     superuser = await UserService.create_superuser(new_superuser)
+#     return superuser
 
 
 @user_router.delete('/delete/{user_id}/')
