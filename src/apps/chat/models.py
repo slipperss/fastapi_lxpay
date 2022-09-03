@@ -6,8 +6,9 @@ from src.apps.user.models import User
 
 
 class Chat(models.Model):
+    """ Модель чата """
     id = fields.UUIDField(pk=True, index=True)
-    date_created = fields.DatetimeField(default=datetime.utcnow)
+    created_date = fields.DatetimeField(default=datetime.utcnow)
     members: fields.ManyToManyRelation[User] = fields.ManyToManyField(
         'models.User',
         through='chat_user',
@@ -17,6 +18,7 @@ class Chat(models.Model):
 
 
 class Message(models.Model):
+    """ Модель сообщений """
     id = fields.UUIDField(pk=True)
     msg = fields.CharField(null=False, max_length=10000)
     user: fields.ForeignKeyRelation = fields.ForeignKeyField(

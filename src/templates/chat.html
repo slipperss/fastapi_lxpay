@@ -20,8 +20,7 @@
             token = getCookie('csrftoken');
             // let user = fetch('http://127.0.0.1:8000/api/chat/')
             chat_id = 'a138312f-a1fb-4d95-bde1-c9a112419447'
-            let ws = new WebSocket(`ws://localhost:8000/api/chat/${chat_id}`);
-
+            let ws = new WebSocket(`ws://localhost:8000/api/chat/${chat_id}`)
             ws.onmessage = function(event) {
                 let messages = document.getElementById('messages')
                 let message = document.createElement('li')

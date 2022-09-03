@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException, status
+
+from starlette.background import BackgroundTasks
+
 from google.auth.transport import requests
 from google.oauth2 import id_token
 
@@ -8,7 +11,6 @@ from jose import jwt, JWTError
 
 from passlib.exc import InvalidTokenError
 
-from starlette.background import BackgroundTasks
 from tortoise.expressions import Q
 
 from .models import Verification
@@ -23,6 +25,7 @@ from ...config.settings import GOOGLE_CLIENT_ID
 
 
 def create_access_token(data: dict):
+    """ Генерация jwt access токена """
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
@@ -31,6 +34,7 @@ def create_access_token(data: dict):
 
 
 async def authenticate_user(email: str, password: str):
+    """ Проверка авторизирован ли юзер """
     user = await UserService.get_user_by_email(email)
     if not user:
         return False
@@ -40,6 +44,7 @@ async def authenticate_user(email: str, password: str):
 
 
 async def get_current_user(token: str = Depends(settings.OAUTH2_SCHEME)):
+    """ Получить обьект текущего пользователя """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -60,7 +65,7 @@ async def get_current_user(token: str = Depends(settings.OAUTH2_SCHEME)):
 
 
 async def get_current_verified_active_user(current_user: models.User = Depends(get_current_user)):
-    #print(current_user.email, current_user.password, current_user.is_active, current_user.email_verified)
+    """ Получить обьект текущего верифицированного и активного пользователя """
     if not current_user.is_active:
         raise HTTPException(status_code=405, detail="Inactive user")
     if not current_user.email_verified:
@@ -69,7 +74,7 @@ async def get_current_verified_active_user(current_user: models.User = Depends(g
 
 
 async def registration_user(new_user: UserIn, task: BackgroundTasks) -> bool:
-    """Регистрация пользователя"""
+    """ Регистрация пользователя """
     if await models.User.get(Q(username=new_user.username) | Q(email=new_user.email)).exists():
         return True
     else:
@@ -88,14 +93,13 @@ async def verify_registration_user(uuid: VerificationOut) -> bool:
     if verify:
         await models.User.filter(id=verify.user.id).update(email_verified=True)
         await Verification.get(link=uuid).delete()
-        print('true')
         return True
     else:
-        print('Else')
         return False
 
 
 def generate_password_reset_token(email: str):
+    """ Генерация токена для дальнейшего изменения пароля """
     delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
     expires = datetime.utcnow() + delta
     exp = expires.timestamp()
@@ -108,6 +112,7 @@ def generate_password_reset_token(email: str):
 
 
 def verify_password_reset_token(token: str):
+    """ Проверка на валидность токена для изменения пароля """
     try:
         decoded_token = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         assert decoded_token["sub"] == settings.PASSWORD_RESET_JWT_SUBJECT
@@ -117,11 +122,13 @@ def verify_password_reset_token(token: str):
 
 
 async def google_auth(user: GoogleUserCreate) -> tuple:
-    try:
-        idinfo = id_token.verify_oauth2_token(user.token, requests.Request(), GOOGLE_CLIENT_ID)
-    except ValueError:
-        raise HTTPException(403, "Bad code")
-    user = await UserService.create_google_user(user)
-    data = {"sub": user.email}
-    access_token = create_access_token(data=data)
-    return user.id, access_token
+    """ Авторизация через google """
+    # try:
+    idinfo = id_token.verify_oauth2_token(user.token, requests.Request(), GOOGLE_CLIENT_ID)
+    print(idinfo)
+    # except ValueError:
+    #     raise HTTPException(403, "Bad code")
+    # user = await UserService.create_google_user(user)
+    # data = {"sub": user.email}
+    # access_token = create_access_token(data=data)
+    # return user.id, access_token

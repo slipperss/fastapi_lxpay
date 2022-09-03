@@ -2,21 +2,22 @@ import uuid
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from tortoise.contrib.pydantic import pydantic_model_creator
 
-from src.apps.chat.models import Chat, Message
-from src.apps.user.models import User
+from src.apps.chat.models import Chat
 
-ChatOut = pydantic_model_creator(
+ChatBase = pydantic_model_creator(
     Chat,
     name="ChatOut",
 )
 
 
 class UserInChat(BaseModel):
-    user_id: uuid.UUID
+    id: uuid.UUID
+    username: str
+    avatar: str
 
 
 class UserInMessage(BaseModel):
@@ -27,10 +28,29 @@ class UserInMessage(BaseModel):
 class ChatIn(BaseModel):
     members: list[UserInChat]
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "members": [
+                    {
+                        "user_id": "b05a1187-c994-4541-90ec-244eb54ad54d"
+                    },
+                    {
+                        "user_id": "eaae0c25-7fa0-42c0-aeac-f499025455c8"
+                    }
+                ]
+            }
+        }
+
+
+class ChatOut(BaseModel):
+    id: uuid.UUID
+    created_date: datetime
+
 
 class MessageOut(BaseModel):
     id: uuid.UUID
     msg: str
-    #user_id: uuid.UUID
     created_date: datetime
-
+    user__id: uuid.UUID
+    user__username: str

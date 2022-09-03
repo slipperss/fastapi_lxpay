@@ -46,21 +46,28 @@
 #     print(sender, receiver, message)
 
 
+from sendgrid import SendGridAPIClient
+
+from sendgrid.helpers.mail import Mail
+
+from dotenv import load_dotenv
+
+import os
+
+
+load_dotenv()
+
 # using SendGrid's Python Library
 # https://github.com/sendgrid/sendgrid-python
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
-from src.config.settings import CONFIG_CREDENTIALS
-
 def send_mail(email_to: str, subject: '', template: ''):
     try:
         message = Mail(
-            from_email=CONFIG_CREDENTIALS['EMAILS_FROM_EMAIL'],
+            from_email=os.environ.get('EMAILS_FROM_EMAIL'),
             to_emails=email_to,
             subject=subject,
             html_content=template
         )
-        sg = SendGridAPIClient(CONFIG_CREDENTIALS['SENDGRID_API_KEY'])  #os.environ.get('SENDGRID_API_KEY'))
+        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))  #os.environ.get('SENDGRID_API_KEY'))
         response = sg.send(message)
         print(response, '****')
         print(response.status_code)

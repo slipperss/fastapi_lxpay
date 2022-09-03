@@ -1,27 +1,25 @@
 import os
 
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 
 from passlib.context import CryptContext
 
 from src.apps.auth.security import CustomOAuth2PasswordBearer
 
 
-CONFIG_CREDENTIALS = dict(dotenv_values(".env"))
+load_dotenv()
 
 PROJECT_NAME = "LXPay"
 
-SECRET_KEY = CONFIG_CREDENTIALS['SECRET_KEY']
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
-GOOGLE_CLIENT_SECRET = CONFIG_CREDENTIALS['GOOGLE_CLIENT_SECRET']
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
 
-GOOGLE_CLIENT_ID = CONFIG_CREDENTIALS['GOOGLE_CLIENT_ID']
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
 
-SERVER_HOST = CONFIG_CREDENTIALS["SERVER_HOST"]
+SERVER_HOST = os.environ.get("SERVER_HOST")
 
-SERVER_PORT = CONFIG_CREDENTIALS['SERVER_PORT']
-
-#SERVER_HOST = os.environ.get("SERVER_HOST")
+SERVER_PORT = os.environ.get('SERVER_PORT')
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -44,15 +42,10 @@ BACKEND_CORS_ORIGINS = [
     "http://localhost:8080",
 ]
 
-DATABASE_URL = f'postgres://{CONFIG_CREDENTIALS["POSTGRES_USER"]}:' \
-               f'{CONFIG_CREDENTIALS["POSTGRES_PASSWORD"]}@' \
-               f'{CONFIG_CREDENTIALS["POSTGRES_HOST"]}:5432/' \
-               f'{CONFIG_CREDENTIALS["POSTGRES_DB"]}'
-
-# DATABASE_URL = f'postgres://{os.environ.get("POSTGRES_USER")}:' \
-#                f'{os.environ.get("POSTGRES_PASSWORD")}@' \
-#                f'{os.environ.get("POSTGRES_HOST")}:5432/' \
-#                f'{os.environ.get("POSTGRES_DB")}'
+DATABASE_URL = f'postgres://{os.environ.get("POSTGRES_USER")}:' \
+               f'{os.environ.get("POSTGRES_PASSWORD")}@' \
+               f'{os.environ.get("POSTGRES_HOST")}:5432/' \
+               f'{os.environ.get("POSTGRES_DB")}'
 
 USERS_OPEN_REGISTRATION = True
 
@@ -61,13 +54,6 @@ EMAIL_RESET_TOKEN_EXPIRE_HOURS = 48
 PASSWORD_RESET_JWT_SUBJECT = 'reset_token'
 EMAIL_TEMPLATES_DIR = "src/templates/build"
 
-# Email
-SMTP_TLS = CONFIG_CREDENTIALS["SMTP_TLS"]
-SMTP_PORT = CONFIG_CREDENTIALS["SMTP_PORT"]
-SMTP_HOST = CONFIG_CREDENTIALS["SMTP_HOST"]
-SMTP_USER = CONFIG_CREDENTIALS["SMTP_USER"]
-SMTP_PASSWORD = CONFIG_CREDENTIALS["SMTP_PASSWORD"]
-EMAILS_FROM_EMAIL = CONFIG_CREDENTIALS["EMAILS_FROM_EMAIL"]
 
 # SMTP_TLS = os.environ.get("SMTP_TLS")
 # SMTP_PORT = os.environ.get("SMTP_PORT")
@@ -76,7 +62,7 @@ EMAILS_FROM_EMAIL = CONFIG_CREDENTIALS["EMAILS_FROM_EMAIL"]
 # SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
 # EMAILS_FROM_EMAIL = os.environ.get("EMAILS_FROM_EMAIL")
 
-EMAILS_ENABLED = SMTP_HOST and SMTP_PORT and EMAILS_FROM_EMAIL
+#EMAILS_ENABLED = SMTP_HOST and SMTP_PORT and EMAILS_FROM_EMAIL
 
 APPS_MODELS = [
     "src.apps.user.models",

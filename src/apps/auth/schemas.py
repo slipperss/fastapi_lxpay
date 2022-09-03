@@ -1,5 +1,4 @@
 import uuid
-from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -22,7 +21,7 @@ class VerificationCreate(BaseModel):
 class VerificationOut(BaseModel):
     """ Схема для проверки email при регистрации
     """
-    link: UUID
+    link: uuid.UUID
 
 
 class Msg(BaseModel):

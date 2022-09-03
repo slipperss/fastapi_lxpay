@@ -47,6 +47,7 @@ def send_new_account_email(email_to: str, username: str, token: str):
         template=template,
     )
 
+
 def send_reset_password_email(email_to: str, username: str, token: str):
     """ Отправка письма при сбросе пароля """
     # with open(Path(settings.EMAIL_TEMPLATES_DIR) / "reset_password.html") as f:

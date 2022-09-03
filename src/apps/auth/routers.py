@@ -85,11 +85,6 @@ async def reset_password(
     return {"msg": "Password updated successfully"}
 
 
-# @auth_router.get('/sign-up/google/page/')
-# async def google_auth_page(request: Request):
-#     return templates.TemplateResponse("google_login.html", {"request": request})
-
-
 @auth_router.post('/sign-up/google/', response_model=GoogleToken)
 async def create_google_user(user: GoogleUserCreate):
     user_id, token = await google_auth(user)

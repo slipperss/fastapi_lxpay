@@ -49,7 +49,7 @@ async def healthcheck():
 
 @app.get('/')
 async def google_auth_page(request: Request):
-    return templates.TemplateResponse("google_login.html", {"request": request})
+    return templates.TemplateResponse("google_auth.html", {"request": request})
 
 
 app.include_router(routers.api_router, prefix=settings.API_V1_STR)
