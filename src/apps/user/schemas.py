@@ -29,15 +29,14 @@ UserOut = pydantic_model_creator(
 #     username: str | None = Field(default=None)
 #     avatar: str | None = Field(default=None)
 
+
 class UpdateAvatar(BaseModel):
     avatar: str
+
 
 class UpdateUsername(BaseModel):
     username: str
 
 
 class GoogleUserCreate(BaseModel):
-    username: str
-    email: EmailStr
-    avatar: str
     token: str

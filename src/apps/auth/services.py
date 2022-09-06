@@ -123,12 +123,11 @@ def verify_password_reset_token(token: str):
 
 async def google_auth(user: GoogleUserCreate) -> tuple:
     """ Авторизация через google """
-    # try:
-    idinfo = id_token.verify_oauth2_token(user.token, requests.Request(), GOOGLE_CLIENT_ID)
-    print(idinfo)
-    # except ValueError:
-    #     raise HTTPException(403, "Bad code")
-    # user = await UserService.create_google_user(user)
-    # data = {"sub": user.email}
-    # access_token = create_access_token(data=data)
-    # return user.id, access_token
+    try:
+        id_info = id_token.verify_oauth2_token(user.token, requests.Request(), GOOGLE_CLIENT_ID)
+    except ValueError:
+        raise HTTPException(403, "Bad code")
+    user = await UserService.get_or_create_google_user(id_info)
+    data = {"sub": user.email}
+    access_token = create_access_token(data=data)
+    return access_token

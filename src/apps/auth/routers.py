@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Query, Body
 from fastapi.security import OAuth2PasswordRequestForm
 
-from src.apps.auth.schemas import Token, VerificationOut, Msg, EmailRecover, ResetPassword, GoogleToken
+from src.apps.auth.schemas import Token, VerificationOut, Msg, EmailRecover, ResetPassword
 from src.apps.auth.send_email import send_reset_password_email
 from src.apps.auth.services import create_access_token, registration_user, verify_registration_user, \
     generate_password_reset_token, verify_password_reset_token, google_auth
@@ -85,7 +85,7 @@ async def reset_password(
     return {"msg": "Password updated successfully"}
 
 
-@auth_router.post('/sign-up/google/', response_model=GoogleToken)
-async def create_google_user(user: GoogleUserCreate):
-    user_id, token = await google_auth(user)
-    return GoogleToken(id=user_id, token=token)
+@auth_router.post('/google-auth/', response_model=Token)
+async def auth_google_user(user: GoogleUserCreate):
+    access_token = await google_auth(user)
+    return {"access_token": access_token, "token_type": "bearer"}

@@ -17,10 +17,18 @@ class UserService(BaseService):
         return user
 
     @classmethod
-    async def create_google_user(cls, new_user: schemas.GoogleUserCreate) -> models.User:
-        random_pass = uuid.UUID()
-        new_user.password = get_hashed_password(random_pass)
-        user = await cls.model.create(**new_user.dict().pop('token'))
+    async def get_or_create_google_user(cls, new_user) -> models.User:
+        user = await cls.get_user_by_email(email=new_user['email'])
+        if not user:
+            #random_pass = uuid.uuid4()
+            #hashed_random_pass = get_hashed_password(random_pass)
+            user = await cls.model.create(
+                email=new_user['email'],
+                username=new_user['name'],
+                email_verified=new_user['email_verified'],
+                avatar=new_user['picture'],
+                #password=hashed_random_pass
+            )
         return user
 
     @classmethod
@@ -31,8 +39,11 @@ class UserService(BaseService):
 
     @classmethod
     async def get_user_by_email(cls, email) -> models.User:
-        user = await cls.model.get(email=email)
-        return user
+        try:
+            user = await cls.model.get(email=email)
+            return user
+        except Exception:
+            pass
 
     @classmethod
     async def get_user_by_id(cls, id):

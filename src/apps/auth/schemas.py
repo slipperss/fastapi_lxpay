@@ -40,5 +40,4 @@ class ResetPassword(BaseModel):
 
 
 class GoogleToken(BaseModel):
-    user_id: uuid.UUID
     token: str
