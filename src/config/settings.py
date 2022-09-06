@@ -68,6 +68,9 @@ APPS_MODELS = [
     "src.apps.user.models",
     "src.apps.auth.models",
     "src.apps.chat.models",
+    "src.apps.sales.models",
+    "src.apps.games.models",
+    "src.apps.categories.models",
     "aerich.models",
 ]
 
