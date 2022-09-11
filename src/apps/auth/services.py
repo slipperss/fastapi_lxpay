@@ -35,7 +35,7 @@ def create_access_token(data: dict):
 
 async def authenticate_user(email: str, password: str):
     """ Проверка авторизирован ли юзер """
-    user = await UserService.get_user_by_email(email)
+    user = await UserService.get(email=email)
     if not user:
         return False
     if not verify_password(password, user.password):
@@ -58,7 +58,7 @@ async def get_current_user(token: str = Depends(settings.OAUTH2_SCHEME)):
         token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception
-    user = await UserService.get_user_by_email(email=token_data.email)
+    user = await UserService.get(email=token_data.email)
     if user is None:
         raise credentials_exception
     return user

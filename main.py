@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from debug_toolbar.middleware import DebugToolbarMiddleware
+
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.requests import Request
-from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 from tortoise.contrib.fastapi import register_tortoise
@@ -14,12 +14,15 @@ from src.apps import routers
 app = FastAPI(
     title="LXPay",
     version="0.0.1",
+    debug=settings.DEBUG
 )
 
-app.mount('/static', StaticFiles(directory="src/static"), name="static")
+if settings.DEBUG:
+    app.add_middleware(
+        DebugToolbarMiddleware
+    )
 
 templates = Jinja2Templates(directory="src/templates")
-
 
 register_tortoise(
     app,
@@ -29,7 +32,6 @@ register_tortoise(
     add_exception_handlers=True,
 )
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
@@ -38,19 +40,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
-
-
-@app.get('/healthcheck/', tags=['healthcheck'])
-async def healthcheck():
-    return {'Hello': 'World'}
-
-
-@app.get('/')
-async def google_auth_page(request: Request):
-    return templates.TemplateResponse("google_auth.html", {"request": request})
-
 
 app.include_router(routers.api_router, prefix=settings.API_V1_STR)
 

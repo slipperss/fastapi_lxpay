@@ -11,6 +11,8 @@ load_dotenv()
 
 PROJECT_NAME = "LXPay"
 
+DEBUG = os.environ.get('DEBUG')
+
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
@@ -68,9 +70,9 @@ APPS_MODELS = [
     "src.apps.user.models",
     "src.apps.auth.models",
     "src.apps.chat.models",
-    "src.apps.accounts.models",
-    "src.apps.games.models",
     "src.apps.categories.models",
+    "src.apps.games.models",
+    #"src.apps.accounts.models",
     "aerich.models",
 ]
 

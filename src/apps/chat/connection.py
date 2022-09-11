@@ -26,12 +26,13 @@ class ConnectionManager:
         self.number_of_connections += 1
         self.user_tokens.append(new_connection_token)
 
-    def disconnect(self, websocket: WebSocket):
+    async def disconnect(self, websocket: WebSocket):
         """ Отключаемся от сокета """
         token = websocket.headers.get('Sec-WebSocket-Protocol')
         self.active_connections.remove(websocket)
         self.number_of_connections -= 1
         self.user_tokens.remove(token)
+        await websocket.close()
 
     async def send_personal_message(self, message: str):
         """ Отправляем сообщение юзерам по сокету """

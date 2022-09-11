@@ -3,16 +3,11 @@ import uuid
 from tortoise.expressions import Q, Subquery
 
 from src.apps.chat import models
-from src.apps.chat import schemas
+from src.apps.chat.schemas import ChatIn
 from src.apps.user.models import User
-from src.base.service_base import BaseService
 
 
-class ChatService(BaseService):
-    model = models.Chat
-    create_schema = schemas.ChatIn
-    get_schema = schemas.ChatOut
-
+class ChatService:
     @classmethod
     async def get_chat_by_id(cls, chat_id: uuid.UUID):
         """ Получаем чат по его id """
@@ -52,7 +47,7 @@ class ChatService(BaseService):
         return chats_with_members
 
     @classmethod
-    async def chat_create(cls, new_chat: create_schema):
+    async def chat_create(cls, new_chat: ChatIn):
         """ Создаем чат и юзеров к нему """
         members = []
         for member in new_chat.members:

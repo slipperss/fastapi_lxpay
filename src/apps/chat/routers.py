@@ -29,7 +29,10 @@ async def get_all_user_chats(current_user: User = Depends(get_current_verified_a
 
 
 @chat_router.post('/create/', response_model=ChatOut)
-async def create_chat(new_chat: ChatIn, current_user: User = Depends(get_current_verified_active_user)):
+async def create_chat(
+        new_chat: ChatIn,
+        current_user: User = Depends(get_current_verified_active_user)
+):
     if new_chat.members[0].user_id == new_chat.members[1].user_id:
         raise HTTPException(status_code=405, detail="There can't be two identical users in a chat")
     obj = await ChatService.chat_create(new_chat)
@@ -37,12 +40,15 @@ async def create_chat(new_chat: ChatIn, current_user: User = Depends(get_current
 
 
 @chat_router.post('/history/{chat_id}', response_model=list[MessageOut])
-async def get_chat_history(chat_id: uuid.UUID, current_user: User = Depends(get_current_verified_active_user)):
+async def get_chat_history(
+        chat_id: uuid.UUID,
+        current_user: User = Depends(get_current_verified_active_user)
+):
     messages = await ChatService.get_all_messages_in_chat(chat_id)
     return messages
 
 
-@chat_router.websocket("/{chat_id}")
+@chat_router.websocket('/{chat_id}')
 async def websocket_endpoint(
         websocket: WebSocket,
         chat_id: uuid.UUID = Path(default=...),
@@ -95,4 +101,4 @@ async def websocket_endpoint(
                                                           message_id=channel_msg_id)
 
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        await manager.disconnect(websocket)

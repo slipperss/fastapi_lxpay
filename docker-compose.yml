@@ -25,7 +25,7 @@
     ##volumes:
     #  - .:/home/useful/app
     ##  - .:/usr/src
-    ##  - ./static:/usr/src/static
+    ##  - ./media:/usr/src/media
     #- ./media:/usr/src/app/media
     ##ports:
     ##  - 8000:8000
