@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class GameIn(BaseModel):
-    name: str
+    name: str | None = None
     category_id: int | None = None
 
 

@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Depends
 
-from src.apps.auth.services import get_current_verified_active_user
+from src.apps.auth.services import get_current_verified_active_user, get_current_verified_active_superuser
 from src.apps.user import models
 from src.apps.user.services import UserService
 from src.apps.user.schemas import UserOut, UserUpdate
@@ -31,7 +31,10 @@ async def update_user(
 
 
 @user_router.delete('/delete/{user_id}/')
-async def delete_user(user_id: uuid.UUID):
+async def delete_user(
+        user_id: uuid.UUID,
+        current_superuser: models.User = Depends(get_current_verified_active_superuser)
+):
     response = await UserService.delete(id=user_id)
     if response:
         return {'detail': response}

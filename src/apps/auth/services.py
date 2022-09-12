@@ -64,18 +64,30 @@ async def get_current_user(token: str = Depends(settings.OAUTH2_SCHEME)):
     return user
 
 
-async def get_current_verified_active_user(current_user: models.User = Depends(get_current_user)):
+async def get_current_active_user(current_user: models.User = Depends(get_current_user)):
     """ Получить обьект текущего верифицированного и активного пользователя """
     if not current_user.is_active:
         raise HTTPException(status_code=405, detail="Inactive user")
+    return current_user
+
+
+async def get_current_verified_active_user(current_user: models.User = Depends(get_current_active_user)):
+    """ Получить обьект текущего верифицированного и активного пользователя """
     if not current_user.email_verified:
         raise HTTPException(status_code=405, detail="Email not verified")
     return current_user
 
 
+async def get_current_verified_active_superuser(current_user: models.User = Depends(get_current_verified_active_user)):
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="You don't have administrator rights")
+    return current_user
+
+
 async def registration_user(new_user: UserIn, task: BackgroundTasks) -> bool:
     """ Регистрация пользователя """
-    if await models.User.get(Q(username=new_user.username) | Q(email=new_user.email)).exists():
+    existing = await models.User.get(Q(username=new_user.username) | Q(email=new_user.email)).exists()
+    if existing:
         return True
     else:
         user = await UserService.create_user(new_user)
@@ -83,7 +95,7 @@ async def registration_user(new_user: UserIn, task: BackgroundTasks) -> bool:
         task.add_task(
             send_new_account_email, new_user.email, new_user.username, verify.link
         )
-        return False
+    return False
 
 
 async def verify_registration_user(uuid: VerificationOut) -> bool:
