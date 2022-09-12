@@ -72,7 +72,7 @@ APPS_MODELS = [
     "src.apps.chat.models",
     "src.apps.categories.models",
     "src.apps.games.models",
-    #"src.apps.accounts.models",
+    "src.apps.game_accounts.models",
     "aerich.models",
 ]
 

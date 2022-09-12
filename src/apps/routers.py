@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from src.apps.game_accounts.routers import game_account_router
 from src.apps.auth.routers import auth_router
 from src.apps.categories.routers import category_router
 from src.apps.chat.routers import chat_router
@@ -14,3 +15,4 @@ api_router.include_router(user_router, prefix='/user', tags=['user'])
 api_router.include_router(chat_router, prefix='/chat', tags=['chat'])
 api_router.include_router(category_router, prefix='/category', tags=['category'])
 api_router.include_router(game_router, prefix='/game', tags=['game'])
+api_router.include_router(game_account_router, prefix='/game-account', tags=['game_account'])
