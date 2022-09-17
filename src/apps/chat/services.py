@@ -41,7 +41,11 @@ class ChatService:
                 {
                     'id': chat.id,
                     'сreated_date': chat.created_date,
-                    'members': await chat.members.all().values('id', 'username', 'avatar')
+                    'members': await chat.members.all().values('id', 'username', 'avatar'),
+                    'last_message': await models.Message.filter(chat_id=chat.id)
+                                                        .order_by('-created_date')
+                                                        .limit(1)
+                                                        .values('user__username', 'msg', 'created_date')
                 }
             )
         return chats_with_members

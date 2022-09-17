@@ -10,7 +10,7 @@ from src.apps.user import models
 game_account_router = APIRouter()
 
 
-@game_account_router.get('/all/{game_id}', response_model=list[GameAccountOut])
+@game_account_router.get('/all/{game_id}/', response_model=list[GameAccountOut])
 async def get_all_user_accounts_by_game(game_id: int):
     game_accounts = await GameAccountService.filter(game_id=game_id)
     return game_accounts
