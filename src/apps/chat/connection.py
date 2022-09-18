@@ -13,8 +13,9 @@ class ConnectionManager:
         и если подключенных юзеров меньше 2
         """
         new_connection_token = websocket.headers.get('Sec-WebSocket-Protocol')
-
+        #print(websocket.headers)
         if new_connection_token in self.user_tokens:
+            #print(self.user_tokens)
             raise Exception('This user is already connected')
 
         if not self.number_of_connections < 2:

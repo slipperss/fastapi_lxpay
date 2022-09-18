@@ -22,8 +22,11 @@ class GameAccountUpdate(BaseModel):
 class GameAccountOut(BaseModel):
     id: uuid.UUID
     title: str
-    description: str
     seller_id: uuid.UUID
-    game_id: int
+    seller__username: str
+    game__name: str
     created_date: datetime
-    is_published: bool
+
+
+class GameAccountDetailOut(GameAccountOut):
+    description: str
