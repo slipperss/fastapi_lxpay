@@ -9,8 +9,8 @@ idea
 dist
 db.sqlite3
 
-media
-media/avatars
+media/
+media/*
 
 venv
 .env

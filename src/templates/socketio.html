@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>LXPAY CHAT</title>
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js" integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k" crossorigin="anonymous"></script>
+
+    <!-- Bootstrap CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Custom styles -->
+    <style>
+        h1 {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 40px;
+        }
+
+        div {
+            width: 80%;
+            padding-top: 450px;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .but {
+            margin-top: 20px;
+            width: 100px;
+        }
+
+        .chat-btn {
+            width: 60px;
+            margin-bottom: 10px;
+        }
+
+    </style>
+</head>
+<body>
+    <body>
+        <h1>GOVNO CHAT</h1>
+        <div>
+            <input type="text" id="token" placeholder="Enter a token">
+            <input type="text" id="chat_id" placeholder="Enter a chat id">
+            <input type="button" id="submit-chat-btn" class="chat-btn">
+            <h2>Your SID: <span id="ws-id"></span></h2>
+            <input type="text" id="messageText" autocomplete="off" placeholder="Text"/><br>
+            <input type="button" id="submit-btn" class="but">
+            <ul id='messages'>
+            </ul>
+        </div>
+        <script>
+            //token = localStorage.getItem('token')
+
+            document.getElementById("submit-chat-btn").addEventListener("click", () => {
+
+                token = document.getElementById(('token')).value
+
+                chat_id = document.getElementById('chat_id').value
+
+                document.getElementById('submit-chat-btn').remove()
+                document.getElementById('chat_id').remove()
+                document.getElementById('token').remove()
+
+
+                let client_io = io("http://localhost:8000/",
+                    {
+                        path: "/ws/socket.io",
+                        extraHeaders: {
+                            "token": token,
+                            'chat': chat_id
+                        }
+                    }
+                );
+
+                client_io.on('connect', () => {
+                    document.querySelector("#ws-id").textContent = client_io.id;
+                    console.log({'connected':client_io['connected']});
+                    client_io.emit('listen');
+                })
+
+                document.getElementById("submit-btn").addEventListener("click", () => sendMessage())
+
+                function sendMessage() {
+
+                    let input = document.getElementById("messageText")
+                    console.log('JS', input.value)
+                    if (input.value) {
+                        client_io.emit('message', input.value)
+                        input.value = ''
+                    }
+                }
+
+                client_io.on('message', (msg) => {
+                    console.log({'message': msg})
+                    let message = document.createElement('li')
+                    let content = document.createTextNode(msg)
+                    message.appendChild(content)
+                })
+
+                client_io.on('disconnect', (error) => {
+                    console.log("disconnected", error)
+                })
+            })
+
+        </script>
+    </body>
+</body>
+</html>

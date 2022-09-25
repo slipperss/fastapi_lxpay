@@ -6,7 +6,6 @@ from passlib.context import CryptContext
 
 from src.apps.auth.security import CustomOAuth2PasswordBearer
 
-
 load_dotenv()
 
 PROJECT_NAME = "LXPay"
@@ -35,6 +34,7 @@ PWD_CONTEXT = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 OAUTH2_SCHEME = CustomOAuth2PasswordBearer(tokenUrl="/api/auth/login/")
 
+
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # Token 60 minutes * 24 hours * 7 days = 7 days
 
 BACKEND_CORS_ORIGINS = [
@@ -42,6 +42,8 @@ BACKEND_CORS_ORIGINS = [
     "http://localhost:4200",
     "http://localhost:3000",
     "http://localhost:8080",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 DATABASE_URL = f'postgres://{os.environ.get("POSTGRES_USER")}:' \

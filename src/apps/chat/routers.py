@@ -1,25 +1,23 @@
+import os
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Header, Request, Body
+import socketio
+from fastapi import APIRouter, Depends, HTTPException
 
-from starlette import status
-from starlette.websockets import WebSocket, WebSocketDisconnect
-
-from .connection import ConnectionManager
-from .producer import Producer
-from .redis_conf import Redis
-from .schemas import ChatIn, ChatOut, MessageOut
+from .pubsub import parse_message, get_request_data, listener, send_message_to_channel
+from .schemas import MessageOut, ChatOut, ChatIn
 from .services import ChatService
-from .stream import StreamConsumer
-from ..auth.services import get_current_verified_active_user, get_current_user
+from ..auth.services import get_current_verified_active_user
 from ..user.models import User
 
 
-manager = ConnectionManager()
-
 chat_router = APIRouter()
 
-redis = Redis()
+arm = socketio.AsyncRedisManager(
+    f"redis://{os.environ.get('REDIS_USER')}:{os.environ.get('REDIS_PASSWORD')}@{os.environ.get('REDIS_HOST')}"
+)
+sio = socketio.AsyncServer(client_manager=arm, async_mode='asgi', cors_allowed_origins=[])
+asgi_app = socketio.ASGIApp(sio)
 
 
 @chat_router.get('/my-chats/')
@@ -48,57 +46,29 @@ async def get_chat_history(
     return messages
 
 
-@chat_router.websocket('/{chat_id}')
-async def websocket_endpoint(
-        websocket: WebSocket,
-        chat_id: uuid.UUID = Path(default=...),
-        sec_websocket_protocol=Header(default=...)
-):
-    current_user = await get_current_user(sec_websocket_protocol)
-
-    # Checking if the specified chat exists
-    chat = await ChatService.get_chat_by_id(chat_id)
+@sio.on('connect')
+async def connect_handler(sid, environ):
+    session_data = await get_request_data(environ)
+    chat = await ChatService.get_chat_by_id(session_data['chat'])
     if not chat:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        raise HTTPException(status_code=404, detail="Chat doesn't exist")
+        await sio.disconnect(sid)
 
-    # Checking if the user from the request is in the specified chat
-    existing = await ChatService.check_existing_user_in_chat(chat=chat, user=current_user)
+    existing = await ChatService.check_existing_user_in_chat(chat=chat, user_id=session_data['user_id'])
     if not existing:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        raise HTTPException(status_code=403, detail="You haven't permissions to connect this chat")
+        await sio.disconnect(sid)
 
-    try:
-        # Connecting
-        await manager.connect(websocket, sec_websocket_protocol)
-        print(f"{current_user.username} connected to chat")
-        redis_client = await redis.create_connection()
-        consumer = StreamConsumer(redis_client)
-        producer = Producer(redis_client)
+    sio.enter_room(sid=sid, room=session_data['chat'])
+    await sio.save_session(sid, session_data)
 
-        while True:
-            data = await websocket.receive_text()
-            if data:
-                # Post message to database and create stream_data to paste it in stream channel
-                message = await ChatService.message_create(msg=data, user_id=current_user.id, chat_id=chat_id)
-                stream_data = Producer.create_stream_data(
-                    chat_id=chat_id,
-                    message=message,
-                    user_id=current_user.id,
-                    username=current_user.username
-                )
-                stream_channel = f'{chat_id}_channel'
-                await producer.add_to_stream(stream_channel=stream_channel, data=stream_data)
+    """ pubsub realization """
+    # await arm.pubsub.subscribe(session_data['chat'])
+    # asyncio.create_task(listener(sio, session_data['chat'], arm.pubsub))
 
-                # Get message from channel
-                response = await consumer.consume_stream(stream_channel=stream_channel, count=1, block=0)
-                if response:
-                    for stream, messages in response:
-                        for message in messages:
-                            message, channel_msg_id = await StreamConsumer.parse_message_from_stream(message, chat_id)
-                            await manager.send_personal_message(message)  # Send message with websocket
-                            await consumer.delete_message(stream_channel=stream_channel,  # delete message from channel
-                                                          message_id=channel_msg_id)
 
-    except WebSocketDisconnect:
-        await manager.disconnect(websocket)
+@sio.on('message')
+async def message_handler(sid, msg):
+    session_data = await sio.get_session(sid)
+    message = await ChatService.message_create(msg=msg, user_id=session_data['user_id'], chat_id=session_data['chat'])
+    parsed_message = parse_message(message, session_data)
+    await sio.emit(event='message', data=parsed_message, room=session_data['chat'])
+    # await send_message_to_channel(arm.redis, session_data, parsed_message) #pubsub

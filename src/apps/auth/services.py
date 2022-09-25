@@ -21,7 +21,6 @@ from ..user.schemas import UserIn, GoogleUserCreate
 from ..user.services import UserService
 from ..user import models
 from ...config import settings
-from ...config.settings import GOOGLE_CLIENT_ID
 
 
 def create_access_token(data: dict):
@@ -136,7 +135,7 @@ def verify_password_reset_token(token: str):
 async def google_auth(user: GoogleUserCreate) -> tuple:
     """ Авторизация через google """
     try:
-        id_info = id_token.verify_oauth2_token(user.token, requests.Request(), GOOGLE_CLIENT_ID)
+        id_info = id_token.verify_oauth2_token(user.token, requests.Request(), settings.GOOGLE_CLIENT_ID)
     except ValueError:
         raise HTTPException(403, "Bad code")
     user = await UserService.get_or_create_google_user(id_info)

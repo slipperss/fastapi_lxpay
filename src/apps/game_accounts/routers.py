@@ -31,7 +31,7 @@ async def create_user_game_account_for_sale(
     return created_game_account
 
 
-@game_account_router.get('/my/', response_model=list[GameAccountOut])
+@game_account_router.get('/my', response_model=list[GameAccountOut])
 async def get_all_user_game_accounts_for_sale(
     current_user: models.User = Depends(get_current_verified_active_user)
 ):

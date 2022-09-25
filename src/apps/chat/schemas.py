@@ -14,7 +14,11 @@ ChatBase = pydantic_model_creator(
 )
 
 
-class UserInChat(BaseModel):
+class ChatUserIn(BaseModel):
+    user_id: uuid.UUID
+
+
+class ChatUserOut(BaseModel):
     id: uuid.UUID
     username: str
     avatar: str
@@ -26,7 +30,7 @@ class UserInMessage(BaseModel):
 
 
 class ChatIn(BaseModel):
-    members: list[UserInChat]
+    members: list[ChatUserIn]
 
     class Config:
         schema_extra = {
@@ -36,7 +40,7 @@ class ChatIn(BaseModel):
                         "user_id": "b05a1187-c994-4541-90ec-244eb54ad54d"
                     },
                     {
-                        "user_id": "eaae0c25-7fa0-42c0-aeac-f499025455c8"
+                        "user_id": "65ff93a5-9c4e-48c8-ac55-93d480583c67"
                     }
                 ]
             }

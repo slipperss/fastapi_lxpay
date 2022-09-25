@@ -1,6 +1,6 @@
 import uuid
 
-from tortoise.expressions import Q, Subquery
+from tortoise.expressions import Q, Subquery, F
 
 from src.apps.chat import models
 from src.apps.chat.schemas import ChatIn
@@ -15,10 +15,10 @@ class ChatService:
         return chat
 
     @classmethod
-    async def check_existing_user_in_chat(cls, chat: models.Chat, user: User):
+    async def check_existing_user_in_chat(cls, chat: models.Chat, user_id: uuid.UUID):
         """ Проверяем существование пользователя в чате """
         for member in await chat.members:
-            if user.id == member.id:
+            if user_id == member.id:
                 return True
         return False
 
@@ -27,7 +27,7 @@ class ChatService:
         """ Проверяем существование чата с помощью 2-х его участников """
         sub1 = Subquery(models.Chat.filter(members=members[0].id).only('id'))
         sub2 = Subquery(models.Chat.filter(members=members[1].id).only('id'))
-        chat = await cls.model.filter(Q(id__in=sub1) &
+        chat = await models.Chat.filter(Q(id__in=sub1) &
                                       Q(id__in=sub2))
         return chat
 
