@@ -17,17 +17,17 @@ async def get_all_user_accounts_by_game(game_id: int):
 
 
 @game_account_router.get('/{game_account_id}/', response_model=GameAccountDetailOut)
-async def get_all_user_accounts_by_game(game_account_id: uuid.UUID):
+async def get_all_user_accounts_by_id(game_account_id: uuid.UUID):
     game_account = await GameAccountService.get(id=game_account_id, is_published=True)
     return game_account
 
 
-@game_account_router.post('/', response_model=GameAccountIn)
+@game_account_router.post('/', response_model=GameAccountDetailOut)
 async def create_user_game_account_for_sale(
     new_account: GameAccountIn,
     current_user: models.User = Depends(get_current_verified_active_user)
 ):
-    created_game_account = await GameAccountService.create(new_account, seller_id=current_user.id)
+    created_game_account = await GameAccountService.create_and_get(new_account, seller_id=current_user.id)
     return created_game_account
 
 
@@ -39,7 +39,7 @@ async def get_all_user_game_accounts_for_sale(
     return game_accounts
 
 
-@game_account_router.put('/{game_account_id}/', response_model=GameAccountUpdate)
+@game_account_router.put('/{game_account_id}/', response_model=GameAccountDetailOut)
 async def update_user_game_account_for_sale(
     to_update: GameAccountUpdate,
     game_account_id: uuid.UUID,

@@ -17,10 +17,9 @@ async def create_game(
     return created_game
 
 
-@game_router.get('/all/')#, response_model=list[GameOut])
+@game_router.get('/all/', response_model=list[GameOut])
 async def get_all_games():
     games = await GameService.all()
-    #values=('id', 'name', 'category_id', 'category__name'))
     return games
 
 

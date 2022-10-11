@@ -1,15 +1,13 @@
-import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from debug_toolbar.middleware import DebugToolbarMiddleware
 
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.templating import Jinja2Templates
 
 from tortoise.contrib.fastapi import register_tortoise
 
-from src.apps.chat.routers import asgi_app
+from src.apps.chat.socket import asgi_app
 from src.config import settings
 from src.apps import routers
 
@@ -21,8 +19,6 @@ app = FastAPI(
 
 if settings.DEBUG is True:
     app.add_middleware(DebugToolbarMiddleware)
-
-templates = Jinja2Templates(directory="src/templates")
 
 register_tortoise(
     app,

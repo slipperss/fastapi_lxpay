@@ -1,7 +1,8 @@
 import uuid
 
-from tortoise.expressions import Q, Subquery, F
+from tortoise.expressions import Q, Subquery
 
+from src.apps.auth.services import get_current_user
 from src.apps.chat import models
 from src.apps.chat.schemas import ChatIn
 from src.apps.user.models import User
@@ -32,9 +33,9 @@ class ChatService:
         return chat
 
     @classmethod
-    async def get_all_user_chats(cls, user: User):
+    async def get_all_user_chats(cls, user_id: uuid.UUID):
         """ Получаем все чаты юзера """
-        chats = await models.Chat.filter(members=user.id).prefetch_related('members')
+        chats = await models.Chat.filter(members=user_id).prefetch_related('members')
         chats_with_members = []
         for chat in chats:
             chats_with_members.append(
@@ -85,3 +86,24 @@ class ChatService:
                                                                        #'user__avatar',
                                                                        )
         return messages
+
+    @staticmethod
+    def parse_message(message, user_id: uuid.UUID, username: str):
+        """ Парсим сообщения для отправки по сокету """
+        pubsub_data = {
+            'id': str(message.id),
+            'msg': message.msg,
+            'user__id': str(user_id),
+            'user__username': username,
+            'created_date': str(message.created_date)
+        }
+        return pubsub_data
+
+    @staticmethod
+    async def get_request_user(environ):
+        token = environ.get('HTTP_TOKEN')
+        current_user = await get_current_user(token)
+        return {
+            'id': current_user.id,
+            'username': current_user.username,
+        }

@@ -32,8 +32,15 @@
         .chat-btn {
             width: 60px;
             margin-bottom: 10px;
+            margin-top: 100px;
         }
 
+        .main_conn {
+            margin-left: 100px;
+        }
+        .notify_conn {
+            margin-left: 100px;
+        }
     </style>
 </head>
 <body>
@@ -43,64 +50,89 @@
             <input type="text" id="token" placeholder="Enter a token">
             <input type="text" id="chat_id" placeholder="Enter a chat id">
             <input type="button" id="submit-chat-btn" class="chat-btn">
+            <input type="checkbox" id="is_main_conn" placeholder="Connect to notificartions?"  class='main_conn'>
+            <input type="checkbox" id="is_notify_conn" placeholder="Connect to main chat?" class='notify_conn'>
             <h2>Your SID: <span id="ws-id"></span></h2>
             <input type="text" id="messageText" autocomplete="off" placeholder="Text"/><br>
             <input type="button" id="submit-btn" class="but">
-            <ul id='messages'>
-            </ul>
         </div>
         <script>
-            //token = localStorage.getItem('token')
-
             document.getElementById("submit-chat-btn").addEventListener("click", () => {
 
-                token = document.getElementById(('token')).value
-
-                chat_id = document.getElementById('chat_id').value
+                let token = document.getElementById(('token')).value
+                let chat_id = document.getElementById('chat_id').value
+                let check_main = document.getElementById('is_main_conn').checked
+                let check_notify = document.getElementById('is_notify_conn').checked
 
                 document.getElementById('submit-chat-btn').remove()
                 document.getElementById('chat_id').remove()
                 document.getElementById('token').remove()
+                document.getElementById('is_main_conn').remove()
+                document.getElementById('is_notify_conn').remove()
 
+                if (check_notify) {
 
-                let client_io = io("http://localhost:8000/",
-                    {
-                        path: "/ws/socket.io",
-                        extraHeaders: {
-                            "token": token,
-                            'chat': chat_id
-                        }
-                    }
-                );
+                    let notification_client = io("http://localhost:8000/notification",
+                      {
+                          path: "/ws/socket.io",
+                          extraHeaders: {
+                              "token": token,
+                              'chat': chat_id
+                          }
+                      }
+                    );
 
-                client_io.on('connect', () => {
-                    document.querySelector("#ws-id").textContent = client_io.id;
-                    console.log({'connected':client_io['connected']});
-                    client_io.emit('listen');
-                })
+                    notification_client.on('connect', () => {
+                        document.querySelector("#ws-id").textContent = notification_client.id;
+                        console.table({'main-chat': {'connected': notification_client['connected']} });
+                    })
 
-                document.getElementById("submit-btn").addEventListener("click", () => sendMessage())
+                    notification_client.on('message', (msg) => {
+                        console.table({ 'notification': msg })
+                    })
 
-                function sendMessage() {
-
-                    let input = document.getElementById("messageText")
-                    console.log('JS', input.value)
-                    if (input.value) {
-                        client_io.emit('message', input.value)
-                        input.value = ''
-                    }
+                    notification_client.on('disconnect', (error) => {
+                        console.table("disconnected from notifications")
+                    })
                 }
 
-                client_io.on('message', (msg) => {
-                    console.log({'message': msg})
-                    let message = document.createElement('li')
-                    let content = document.createTextNode(msg)
-                    message.appendChild(content)
-                })
+                if (check_main){
 
-                client_io.on('disconnect', (error) => {
-                    console.log("disconnected", error)
-                })
+                    let client_io = io("http://localhost:8000/",
+                        {
+                            path: "/ws/socket.io",
+                            extraHeaders: {
+                                "token": token,
+                                'chat': chat_id
+                            }
+                        }
+                    );
+
+                    client_io.on('connect', () => {
+                        document.querySelector("#ws-id").textContent = client_io.id;
+                        console.table({'notifications': {'connected': client_io['connected']} });
+                    })
+
+                    document.getElementById("submit-btn").addEventListener("click", () => sendMessage())
+
+                    function sendMessage() {
+
+                        let input = document.getElementById("messageText")
+                        console.log('JS', input.value)
+                        if (input.value) {
+                            client_io.emit('message', input.value)
+                            input.value = ''
+                        }
+                    }
+
+                    client_io.on('message', (msg) => {
+                        console.table({'message': msg})
+                    })
+
+                    client_io.on('disconnect', (error) => {
+                        console.table("disconnected from main chat")
+                    })
+                }
             })
 
         </script>

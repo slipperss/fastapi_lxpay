@@ -7,4 +7,4 @@ class GameService(BaseService):
 
     @classmethod
     async def all(cls):
-        return await cls.model.all().order_by('name').values('id', 'name', 'category_id', 'category__name')
+        return await cls.model.all().order_by('name').values('id', 'name', 'category_id', 'category__name', 'image')
