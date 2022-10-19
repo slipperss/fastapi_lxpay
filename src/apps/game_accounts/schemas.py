@@ -10,6 +10,7 @@ class GameAccountIn(BaseModel):
     description: str
     game_id: int
     is_published: bool
+    price: float | None = None
 
 
 class GameAccountUpdate(BaseModel):
@@ -17,6 +18,7 @@ class GameAccountUpdate(BaseModel):
     description: str | None = None
     game_id: int | None = None
     is_published: bool | None = None
+    price: float | None = None
 
 
 class GameAccountOut(BaseModel):
@@ -24,8 +26,11 @@ class GameAccountOut(BaseModel):
     title: str
     seller_id: uuid.UUID
     seller__username: str
+    seller__avatar: str
     game__name: str
+    price: float
     created_date: datetime
+    is_published: bool
 
 
 class GameAccountDetailOut(GameAccountOut):

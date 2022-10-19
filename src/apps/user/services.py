@@ -14,7 +14,7 @@ class UserService(BaseService):
 
     @classmethod
     async def get_or_create_google_user(cls, new_user) -> models.User:
-        user = await cls.get(email=new_user['email'])
+        user = await cls.model.get_or_none(email=new_user['email'])
         if not user:
             user = await cls.model.create(
                 email=new_user['email'],
