@@ -9,7 +9,7 @@ UserIn = pydantic_model_creator(
     User,
     name='UserIn',
     exclude_readonly=True,
-    exclude=('email_verified', 'last_activity', 'join_date', 'is_active', 'avatar', 'is_superuser')
+    exclude=('email_verified', 'last_activity', 'join_date', 'is_active', 'avatar', 'is_superuser', 'is_online')
 )
 
 UserOut = pydantic_model_creator(

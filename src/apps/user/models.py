@@ -11,6 +11,7 @@ class User(models.Model):
     email_verified = fields.BooleanField(default=False)
     join_date = fields.DatetimeField(default=datetime.utcnow)
     last_activity = fields.DatetimeField(default=datetime.utcnow)
+    is_online = fields.BooleanField(default=False)
     is_active = fields.BooleanField(default=True)
     is_superuser = fields.BooleanField(default=False)
     avatar = fields.CharField(max_length=250, default='')

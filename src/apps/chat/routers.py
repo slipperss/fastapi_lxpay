@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 
 from starlette.responses import HTMLResponse
 
-from .schemas import MessageOut, ChatOut, ChatIn
+from .schemas import MessageOut, ChatOut, ChatIn, UnreadMessages
 from .services import ChatService
 from ..auth.services import get_current_verified_active_user
 from ..user.models import User
@@ -40,6 +40,12 @@ async def get_chat_history(
 ):
     messages = await ChatService.get_all_messages_in_chat(chat_id)
     return messages
+
+
+@chat_router.get('/unread_messages/', response_model=UnreadMessages)
+async def get_unread_msg_count(current_user: User = Depends(get_current_verified_active_user)):
+    count_unread_msgs = await ChatService.get_all_unread_user_messages(current_user)
+    return {'count': count_unread_msgs}
 
 
 @chat_router.get('/test/', response_class=HTMLResponse)

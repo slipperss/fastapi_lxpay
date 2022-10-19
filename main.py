@@ -7,7 +7,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from tortoise.contrib.fastapi import register_tortoise
 
-from src.apps.chat.socket import asgi_app
+from src.apps.chat.socket import asgi_app#, asgi_app1
 from src.config import settings
 from src.apps import routers
 

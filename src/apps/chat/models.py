@@ -31,4 +31,5 @@ class Message(models.Model):
         on_delete=fields.CASCADE,
         related_name='chat'
     )
+    is_read = fields.BooleanField(default=False)
     created_date = fields.DatetimeField(default=datetime.utcnow)

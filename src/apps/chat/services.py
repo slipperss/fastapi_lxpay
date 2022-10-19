@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 from tortoise.expressions import Q, Subquery
@@ -12,7 +13,7 @@ class ChatService:
     @classmethod
     async def get_chat_by_id(cls, chat_id: uuid.UUID):
         """ Получаем чат по его id """
-        chat = await models.Chat.get(id=chat_id)
+        chat = await models.Chat.get_or_none(id=chat_id)
         return chat
 
     @classmethod
@@ -35,21 +36,48 @@ class ChatService:
     @classmethod
     async def get_all_user_chats(cls, user_id: uuid.UUID):
         """ Получаем все чаты юзера """
-        chats = await models.Chat.filter(members=user_id).prefetch_related('members')
-        chats_with_members = []
+        print('(my_chats) -> Beginning queries ...')
+        now = datetime.datetime.now()
+        chats = await models.Chat.filter(members=user_id).prefetch_related('members').order_by('created_date')
+        edited_chats = []
         for chat in chats:
-            chats_with_members.append(
-                {
-                    'id': chat.id,
-                    'сreated_date': chat.created_date,
-                    'members': await chat.members.all().values('id', 'username', 'avatar'),
-                    'last_message': await models.Message.filter(chat_id=chat.id)
-                                                        .order_by('-created_date')
-                                                        .limit(1)
-                                                        .values('user__username', 'msg', 'created_date')
-                }
-            )
-        return chats_with_members
+            members = await chat.members.all().values('id', 'username', 'avatar')
+            for member in members:
+                if member['id'] != user_id:
+                    unread_msgs = await models.Message.filter(
+                        chat_id=chat.id,
+                        is_read=False,
+                        user_id=member['id']
+                    ).count()
+
+            edited_chats.append({
+                'id': chat.id,
+                'сreated_date': chat.created_date,
+                'members': members,
+                'last_message': await models.Message.get_or_none(chat_id=chat.id)
+                                                    .order_by('-created_date')
+                                                    .limit(1)
+                                                    .values('user__username', 'msg', 'created_date') or None,
+                'unread_messages': unread_msgs
+            })
+        diff = (datetime.datetime.now() - now)
+        print(f'(my_chats) -> Queries finished in {diff.seconds} seconds')
+
+        # Sorting chats
+        # for i in range(len(edited_chats)):
+        #     latest = i
+        #     for j in range(i + 1, len(edited_chats)):
+        #         if edited_chats[j]['last_message'] and edited_chats[latest]['last_message']:
+        #             latest_msg = edited_chats[latest]['last_message']['created_date']
+        #             next_msg = edited_chats[j]['last_message']['created_date']
+        #             if next_msg > latest_msg:
+        #                 latest = j
+        #         elif edited_chats[j]['last_message']:
+        #             latest = j
+        #         elif edited_chats[latest]['last_message']:
+        #             continue
+        #     edited_chats[i], edited_chats[latest] = edited_chats[latest], edited_chats[i]
+        return edited_chats
 
     @classmethod
     async def chat_create(cls, new_chat: ChatIn):
@@ -74,6 +102,12 @@ class ChatService:
         return message
 
     @classmethod
+    async def read_user_messages_in_chat(cls, chat: models.Chat, user_id: uuid.UUID):
+        for member in await chat.members:
+            if member.id != user_id:
+                await models.Message.filter(chat_id=chat.id, user_id=member.id).update(is_read=True)
+
+    @classmethod
     async def get_all_messages_in_chat(cls, chat_id: uuid.UUID):
         """ Получаем всю историю сообщений в чате """
         messages = await models.Message.filter(chat_id=chat_id).select_related('user') \
@@ -83,9 +117,28 @@ class ChatService:
                                                                        'created_date',
                                                                        'user__id',
                                                                        'user__username',
-                                                                       #'user__avatar',
+                                                                       'is_read'
                                                                        )
         return messages
+
+    @classmethod
+    async def get_all_unread_user_messages(cls, user: User):
+        print('(unread_messages) -> Beginning queries ...')
+        now = datetime.datetime.now()
+        chats = await models.Chat.filter(members=user.id).prefetch_related('members')
+        count_unread_msgs = 0
+        for chat in chats:
+            members = await chat.members.all()
+            for member in members:
+                if member.id != user.id:
+                    count_unread_msgs += await models.Message.filter(
+                        user=member.id,
+                        chat=chat.id,
+                        is_read=False
+                    ).count()
+        diff = (datetime.datetime.now() - now)
+        print(f'(unread_messages) -> Queries finished in {diff.seconds} seconds')
+        return count_unread_msgs
 
     @staticmethod
     def parse_message(message, user_id: uuid.UUID, username: str):
@@ -95,6 +148,7 @@ class ChatService:
             'msg': message.msg,
             'user__id': str(user_id),
             'user__username': username,
+            'is_read': message.is_read,
             'created_date': str(message.created_date)
         }
         return pubsub_data

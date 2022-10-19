@@ -17,13 +17,6 @@
             margin-bottom: 40px;
         }
 
-        div {
-            width: 80%;
-            padding-top: 450px;
-            text-align: center;
-            margin: 0 auto;
-        }
-
         .but {
             margin-top: 20px;
             width: 100px;
@@ -41,101 +34,120 @@
         .notify_conn {
             margin-left: 100px;
         }
+        div {
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            width: 500px;
+            padding-top: 150px;
+        }
     </style>
 </head>
 <body>
-    <body>
-        <h1>GOVNO CHAT</h1>
-        <div>
-            <input type="text" id="token" placeholder="Enter a token">
-            <input type="text" id="chat_id" placeholder="Enter a chat id">
-            <input type="button" id="submit-chat-btn" class="chat-btn">
-            <input type="checkbox" id="is_main_conn" placeholder="Connect to notificartions?"  class='main_conn'>
-            <input type="checkbox" id="is_notify_conn" placeholder="Connect to main chat?" class='notify_conn'>
-            <h2>Your SID: <span id="ws-id"></span></h2>
-            <input type="text" id="messageText" autocomplete="off" placeholder="Text"/><br>
-            <input type="button" id="submit-btn" class="but">
-        </div>
-        <script>
-            document.getElementById("submit-chat-btn").addEventListener("click", () => {
+    <h1>GOVNO CHAT</h1>
+    <div>
+        <input type="text" id="token" placeholder="Enter a token">
+        <input type="text" id="chat_id" placeholder="Enter a chat id">
+        <input type="button" id="submit-chat-btn" class="chat-btn">
+        <input type="checkbox" id="is_main_conn" placeholder="Connect to notifications?"  class='main_conn'>
+        <input type="checkbox" id="is_notify_conn" placeholder="Connect to main chat?" class='notify_conn'>
+        <h2>Your SID: <span id="ws-id"></span></h2>
+        <input type="text" id="messageText" autocomplete="off" placeholder="Text"/><br>
+        <input type="button" id="submit-btn" class="but">
+    </div>
+    <script>
+        document.getElementById("submit-chat-btn").addEventListener("click", () => {
 
-                let token = document.getElementById(('token')).value
-                let chat_id = document.getElementById('chat_id').value
-                let check_main = document.getElementById('is_main_conn').checked
-                let check_notify = document.getElementById('is_notify_conn').checked
+            let token = document.getElementById(('token')).value
+            let chat_id = document.getElementById('chat_id').value
+            let check_main = document.getElementById('is_main_conn').checked
+            let check_notify = document.getElementById('is_notify_conn').checked
 
-                document.getElementById('submit-chat-btn').remove()
-                document.getElementById('chat_id').remove()
-                document.getElementById('token').remove()
-                document.getElementById('is_main_conn').remove()
-                document.getElementById('is_notify_conn').remove()
+            document.getElementById('submit-chat-btn').remove()
+            document.getElementById('chat_id').remove()
+            document.getElementById('token').remove()
+            document.getElementById('is_main_conn').remove()
+            document.getElementById('is_notify_conn').remove()
 
-                if (check_notify) {
+            if (check_notify) {
 
-                    let notification_client = io("http://localhost:8000/notification",
-                      {
-                          path: "/ws/socket.io",
-                          extraHeaders: {
-                              "token": token,
-                              'chat': chat_id
-                          }
-                      }
-                    );
+                let notification_client = io('http://127.0.0.1:8000/notification',
+                  {
+                    forceNew: true,
+                    path: "/ws/socket.io",
+                    extraHeaders: {
+                    "token": token,
+                    },
+                  }
+                );
+                console.log('not', notification_client)
 
-                    notification_client.on('connect', () => {
-                        document.querySelector("#ws-id").textContent = notification_client.id;
-                        console.table({'main-chat': {'connected': notification_client['connected']} });
-                    })
+                notification_client.on('connect', () => {
+                    document.querySelector("#ws-id").textContent = notification_client.id;
+                    console.table({'notification': {'connected': notification_client['connected']} });
+                })
 
-                    notification_client.on('message', (msg) => {
-                        console.table({ 'notification': msg })
-                    })
+                notification_client.on('message', (msg) => {
+                    console.table({ 'notification': msg })
+                })
 
-                    notification_client.on('disconnect', (error) => {
-                        console.table("disconnected from notifications")
-                    })
-                }
+                notification_client.on('disconnect', (error) => {
+                    console.table("disconnected from notifications")
+                })
+            }
 
-                if (check_main){
+            if (check_main){
 
-                    let client_io = io("http://localhost:8000/",
-                        {
-                            path: "/ws/socket.io",
-                            extraHeaders: {
-                                "token": token,
-                                'chat': chat_id
-                            }
-                        }
-                    );
-
-                    client_io.on('connect', () => {
-                        document.querySelector("#ws-id").textContent = client_io.id;
-                        console.table({'notifications': {'connected': client_io['connected']} });
-                    })
-
-                    document.getElementById("submit-btn").addEventListener("click", () => sendMessage())
-
-                    function sendMessage() {
-
-                        let input = document.getElementById("messageText")
-                        console.log('JS', input.value)
-                        if (input.value) {
-                            client_io.emit('message', input.value)
-                            input.value = ''
-                        }
+                let client_io = io("http://127.0.0.1:8000/chat",
+                    {
+                        forceNew: true,
+                        path: "/ws/socket.io",
+                        extraHeaders: {
+                            "token": token,
+                            "chat": chat_id
+                        },
                     }
+                );
 
-                    client_io.on('message', (msg) => {
-                        console.table({'message': msg})
-                    })
-
-                    client_io.on('disconnect', (error) => {
-                        console.table("disconnected from main chat")
-                    })
+                let data = {
+                    "user_id": 'cebc3236-46bd-4688-bcc3-a49ac17f33f6',
                 }
-            })
+                console.log('client', client_io)
+                client_io.on('connect', () => {
+                    document.querySelector("#ws-id").textContent = client_io.id;
+                    console.table({'main-chat': {'connected': client_io['connected']} });
+                    data.to_sid = client_io.id
+                    client_io.emit('check_online', data)
+                })
 
-        </script>
-    </body>
+                client_io.on('check_online', (data) => {
+                    console.table({"check_online": data});
+                })
+
+
+                document.getElementById("submit-btn").addEventListener("click", () => sendMessage())
+
+                function sendMessage() {
+
+                    let input = document.getElementById("messageText")
+                    console.log('JS', input.value)
+                    if (input.value) {
+                        client_io.emit('check_online', data)
+                        client_io.emit('message', input.value)
+                        input.value = ''
+                    }
+                }
+
+                client_io.on('message', (msg) => {
+                    console.table({'message': msg})
+                })
+
+                client_io.on('disconnect', (error) => {
+                    console.table("disconnected from main chat")
+                })
+            }
+        })
+
+    </script>
 </body>
 </html>

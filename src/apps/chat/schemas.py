@@ -58,3 +58,8 @@ class MessageOut(BaseModel):
     created_date: datetime
     user__id: uuid.UUID
     user__username: str
+    is_read: bool
+
+
+class UnreadMessages(BaseModel):
+    count: int
