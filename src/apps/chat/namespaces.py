@@ -1,9 +1,11 @@
 import datetime
+import json
 
 import socketio
 
 from src.apps.auth.services import get_current_user
-from src.apps.chat.models import Chat
+from src.apps.chat.models import Chat, Message
+from src.apps.chat.schemas import MessageOut
 from src.apps.chat.services import ChatService
 from src.apps.user.services import UserService
 
@@ -53,12 +55,18 @@ class ChatMainNamespace(socketio.AsyncNamespace):
             msg=msg,
             user_id=session['user'].id,
             chat_id=session['chat'].id,
+            created_date=datetime.datetime.utcnow()
         )
+        second_member_online = False
+        second_member_in_chat = False
         for member in await session['chat'].members:
             if member.id != session['user'].id:
                 if member.id in self.server.manager.chat_connected.get(session['chat'].id):
                     message.is_read = True
                     await message.save()
+                    second_member_in_chat = True
+                if self.server.manager.online_users.get(str(member.id)):
+                    second_member_online = True
 
         parsed_message = ChatService.parse_message(
             message,
@@ -70,12 +78,16 @@ class ChatMainNamespace(socketio.AsyncNamespace):
             data=parsed_message,
             room=str(session['chat'].id)
         )
-        await self.emit(
-            event='message',
-            data={str(session['chat'].id): parsed_message},
-            room=str(session['chat'].id),
-            namespace='/notification'
-        )
+
+        if not second_member_in_chat and second_member_online:
+            sid_to_skip = self.server.manager.online_users.get(str(session.get('user').id))
+            await self.emit(
+                event='message',
+                data={str(session['chat'].id): parsed_message},
+                room=str(session['chat'].id),
+                namespace='/notification',
+                skip_sid=sid_to_skip
+            )
 
     async def on_check_online(self, sid, data):
         existing = self.server.manager.online_users.get(data['user_id'])

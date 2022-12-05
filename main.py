@@ -14,7 +14,7 @@ from src.apps import routers
 app = FastAPI(
     title="LXPay",
     version="0.0.1",
-    debug=settings.DEBUG
+    debug=settings.DEBUG,
 )
 
 if settings.DEBUG is True:

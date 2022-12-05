@@ -96,9 +96,9 @@ class ChatService:
             return chat[0]
 
     @classmethod
-    async def message_create(cls, msg: str, user_id: uuid.UUID, chat_id: uuid.UUID):
+    async def message_create(cls, msg: str, user_id: uuid.UUID, chat_id: uuid.UUID, **kwargs):
         """ Создаем сообщение """
-        message = await models.Message.create(msg=msg, user_id=user_id, chat_id=chat_id)
+        message = await models.Message.create(msg=msg, user_id=user_id, chat_id=chat_id, **kwargs)
         return message
 
     @classmethod
@@ -143,15 +143,14 @@ class ChatService:
     @staticmethod
     def parse_message(message, user_id: uuid.UUID, username: str):
         """ Парсим сообщения для отправки по сокету """
-        pubsub_data = {
+        return {
             'id': str(message.id),
             'msg': message.msg,
             'user__id': str(user_id),
             'user__username': username,
             'is_read': message.is_read,
-            'created_date': str(message.created_date)
+            'created_date': message.created_date.isoformat()
         }
-        return pubsub_data
 
     @staticmethod
     async def get_request_user(environ):

@@ -79,7 +79,6 @@ APPS_MODELS = [
 ]
 
 TORTOISE_ORM = {  # https://github.com/tortoise/aerich
-
     "connections": {"default": DATABASE_URL},
     "apps": {
         "models": {

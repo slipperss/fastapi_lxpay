@@ -27,6 +27,7 @@ class GameAccountOut(BaseModel):
     seller_id: uuid.UUID
     seller__username: str
     seller__avatar: str
+    seller__is_online: bool
     game__name: str
     price: float
     created_date: datetime

@@ -14,6 +14,7 @@ class GameAccountService(BaseService):
         'seller_id',
         'seller__username',
         'seller__avatar',
+        'seller__is_online',
         'game__name',
         'price',
         'created_date',
@@ -25,9 +26,11 @@ class GameAccountService(BaseService):
         return await cls.model.get(**kwargs).values(*cls.expected_fields)
 
     @classmethod
-    async def filter(cls, **kwargs):
+    async def filter(cls, limit: int = 0, offset: int = 0, **kwargs):
         return await cls.model.filter(**kwargs)\
-                              .order_by('created_date')\
+                              .order_by('-price')\
+                              .offset(offset)\
+                              .limit(limit)\
                               .values(*cls.expected_fields)
 
     @classmethod

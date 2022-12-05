@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Query
 
 from src.apps.game_accounts.schemas import GameAccountIn, GameAccountOut, GameAccountUpdate, GameAccountDetailOut
 from src.apps.game_accounts.services import GameAccountService
@@ -10,9 +10,18 @@ from src.apps.user import models
 game_account_router = APIRouter()
 
 
-@game_account_router.get('/all/{game_id}/', response_model=list[GameAccountOut])
-async def get_all_user_accounts_by_game(game_id: int):
-    game_accounts = await GameAccountService.filter(game_id=game_id, is_published=True)
+@game_account_router.get('/all/{game_id}/')#, response_model=list[GameAccountOut])
+async def get_all_user_accounts_by_game(
+    game_id: int,
+    limit: int | None = 0,
+    offset: int | None = 0
+):
+    game_accounts = await GameAccountService.filter(
+        game_id=game_id,
+        limit=limit,
+        offset=offset,
+        is_published=True
+    )
     return game_accounts
 
 
